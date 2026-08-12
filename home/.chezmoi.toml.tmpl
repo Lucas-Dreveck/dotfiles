@@ -1,0 +1,20 @@
+{{- $category := promptChoiceOnce . "category" "Machine category" (list "personal" "work" "both" "none") "personal" -}}
+{{- $personal := or (eq $category "personal") (eq $category "both") -}}
+{{- $work     := or (eq $category "work")     (eq $category "both") -}}
+
+sourceDir = {{ .chezmoi.workingTree | quote }}
+
+encryption = "age"
+
+[age]
+    identity = "~/.config/chezmoi/key.txt"
+    recipient = "age1wfmmhtgnkqu03yqvhwkkzqwn7k9vq85jzjuwhcuafp4patdz9qpsh8d9mt"
+
+[git]
+    autoCommit = true
+    autoPush = true
+
+[data]
+    category = {{ $category | quote }}
+    personal = {{ $personal }}
+    work     = {{ $work }}

@@ -1,0 +1,20 @@
+key.txt.age
+
+.ssh/id_*
+{{ if .personal }}
+!.ssh/id_ed25519_github
+!.ssh/id_ed25519_github.pub
+{{ end }}
+{{ if .work }}
+!.ssh/id_ed25519_work
+!.ssh/id_ed25519_work.pub
+{{ end }}
+
+{{ if not .personal }}
+.ssh/conf.d/personal
+.ssh/conf.d/personal/**
+{{ end }}
+{{ if not .work }}
+.ssh/conf.d/work
+.ssh/conf.d/work/**
+{{ end }}
