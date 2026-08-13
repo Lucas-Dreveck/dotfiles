@@ -1,55 +1,8 @@
-#zmodload zsh/zprof # Start profiling
+ZSH_CONF_D="${ZDOTDIR:-${XDG_CONFIG_HOME:-$HOME/.config}/zsh}/conf.d"
 
-
-### BEGIN - Zinit's installer
-if [[ ! -f $HOME/.local/share/zinit/zinit.git/zinit.zsh ]]; then
-    print -P "%F{33} %F{220}Installing %F{33}ZDHARMA-CONTINUUM%F{220} Initiative Plugin Manager (%F{33}zdharma-continuum/zinit%F{220})…%f"
-    command mkdir -p "$HOME/.local/share/zinit" && command chmod g-rwX "$HOME/.local/share/zinit"
-    command git clone https://github.com/zdharma-continuum/zinit "$HOME/.local/share/zinit/zinit.git" && \
-        print -P "%F{33} %F{34}Installation successful.%f%b" || \
-        print -P "%F{160} The clone has failed.%f%b"
-fi
-
-source "$HOME/.local/share/zinit/zinit.git/zinit.zsh"
-autoload -Uz _zinit
-(( ${+_comps} )) && _comps[zinit]=_zinit
-### END - Zinit's installer
-
-
-### Starship prompt
-eval "$(starship init zsh)"
-
-
-#zprof # End profiling
-
-
-### Cargo / Rust
-. "$HOME/.cargo/env"
-
-
-### PATH
-# Created by `pipx` on 2026-07-01 14:15:51
-export PATH="$PATH:/home/lucasdre/.local/bin"
-export EDITOR="vim" 
-source /usr/share/nvm/init-nvm.sh
-
-
-### BEGIN - Modular configs
-ZSH_CONF_D="${XDG_CONFIG_HOME:-$HOME/.config}/zsh/conf.d"
 if [[ -d "$ZSH_CONF_D" ]]; then
   for _conf_file in "$ZSH_CONF_D"/*.zsh(N) "$ZSH_CONF_D"/*/*.zsh(N); do
     source "$_conf_file"
   done
   unset _conf_file
-fi
-### END - Modular configs
-
-
-if [[ -n "$_YANK_REC" ]]; then
-    if [[ -n "$_YANK_FASTFETCH" ]]; then
-        fastfetch
-        unset _YANK_FASTFETCH
-    fi
-elif [[ $SHLVL -eq 1 && -z "$TMUX" && -z "$ZELLIJ" ]]; then
-    fastfetch
 fi
