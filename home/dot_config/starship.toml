@@ -1,0 +1,65 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+format = """
+[╭──](#1793D1)\
+[  ](bg:#1793D1 fg:#0a0a0a)\
+$username\
+[](fg:#1793D1 bg:#12324a)\
+$directory\
+[](fg:#12324a bg:#2AA8B0)\
+$git_branch\
+$git_status\
+[](fg:#2AA8B0)\
+$fill\
+$time\
+[─╮](#1793D1)\
+$line_break\
+[╰─](#1793D1)$character"""
+
+add_newline = true
+
+[username]
+show_always = true
+style_user = "bg:#1793D1 fg:#0a0a0a"
+style_root = "bg:#e06c75 fg:#0a0a0a"
+format = "[$user ]($style)"
+
+[directory]
+style = "bg:#12324a fg:#8fd0f5"
+format = "[ $path ]($style)"
+truncation_length = 3
+truncation_symbol = "…/"
+
+[git_branch]
+symbol = " "
+style = "bg:#2AA8B0 fg:#04242a"
+format = "[ $symbol$branch ]($style)"
+
+[git_status]
+style = "bg:#2AA8B0 fg:#04242a"
+format = "[${all_status}${ahead_behind}]($style)"
+stashed = ""
+ahead = "⇡${count} "
+behind = "⇣${count} "
+diverged = "⇕⇡${ahead_count}⇣${behind_count} "
+modified = "+${count} "
+untracked = "?${count} "
+staged = "●${count} "
+deleted = "✖${count} "
+renamed = "»${count} "
+conflicted = "✗${count} "
+
+[fill]
+symbol = "─"
+style = "fg:#1793D1"
+
+[time]
+disabled = false
+time_format = "%H:%M"
+style = "fg:#5c6370"
+format = "[ $time ]($style)"
+
+[character]
+success_symbol = "[❯](bold #1793D1)"
+error_symbol = "[❯](bold #e06c75)"
+
