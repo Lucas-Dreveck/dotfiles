@@ -1,32 +1,35 @@
-{{- $osID := .chezmoi.os -}}
-{{- if hasKey .chezmoi.osRelease "id" -}}
-{{-   $osID = printf "%s-%s" .chezmoi.os .chezmoi.osRelease.id -}}
-{{- end -}}
-{{- if eq $osID "linux-arch" -}}
-{{-   $pacman := list
-        "age"
-        "chezmoi"
-        "fastfetch"
-        "git"
-        "gnupg"
-        "gopass"
-        "kitty"
-        "nvm"
-        "perl"
-        "starship"
-        "ttf-jetbrains-mono-nerd"
-        "util-linux"
-        "vim"
-        "wl-clipboard"
-        "zsh" -}}
-{{-   $aur := list -}}
-{{-   $pipx := list -}}
-{{-   if .work -}}
-{{-     $pacman = mustAppend $pacman "docker" -}}
-{{-     $aur = mustAppend $aur "hadolint-bin" -}}
-{{-     $pipx = concat $pipx (list "black" "djlint" "flake8" "isort") -}}
-{{-   end -}}
 #!/bin/sh
+{{- $osID := .chezmoi.os }}
+{{- if hasKey .chezmoi.osRelease "id" }}
+{{-   $osID = printf "%s-%s" .chezmoi.os .chezmoi.osRelease.id }}
+{{- end }}
+{{- if ne $osID "linux-arch" }}
+
+printf 'install-packages: %s sem lista de pacotes definida\n' '{{ $osID }}' >&2
+{{- else }}
+{{- $pacman := list
+      "age"
+      "chezmoi"
+      "fastfetch"
+      "git"
+      "gnupg"
+      "gopass"
+      "kitty"
+      "nvm"
+      "perl"
+      "starship"
+      "ttf-jetbrains-mono-nerd"
+      "util-linux"
+      "vim"
+      "wl-clipboard"
+      "zsh" }}
+{{- $aur := list }}
+{{- $pipx := list }}
+{{- if .work }}
+{{-   $pacman = mustAppend $pacman "docker" }}
+{{-   $aur = mustAppend $aur "hadolint-bin" }}
+{{-   $pipx = concat $pipx (list "black" "djlint" "flake8" "isort") }}
+{{- end }}
 
 set -eu
 
@@ -68,8 +71,4 @@ if [ -n "$missing" ]; then
         printf 'install-packages: pipx ausente, faltando ->%s\n' "$missing" >&2
     fi
 fi
-{{ else -}}
-#!/bin/sh
-
-printf 'install-packages: %s sem lista de pacotes definida\n' '{{ $osID }}' >&2
-{{ end -}}
+{{- end }}
