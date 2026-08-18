@@ -1,0 +1,11 @@
+[includeIf "gitdir:~/Repositories/GitHub/"]
+    path = ~/Repositories/GitHub/.gitconfig
+
+[includeIf "gitdir:~/Repositories/GitLab/"]
+    path = ~/Repositories/GitLab/.gitconfig
+
+[pull]
+    rebase = false
+
+[init]
+    defaultBranch = main
