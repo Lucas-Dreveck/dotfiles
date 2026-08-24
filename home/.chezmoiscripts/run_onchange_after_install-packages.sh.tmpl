@@ -17,25 +17,27 @@ printf 'install-packages: %s sem lista de pacotes definida\n' '{{ $osID }}' >&2
       "kitty"
       "nvm"
       "perl"
+      "rustup"
       "starship"
       "ttf-jetbrains-mono-nerd"
       "util-linux"
+      "uv"
       "vim"
       "wl-clipboard"
       "zsh" }}
 {{- $aur := list }}
-{{- $pipx := list }}
+{{- $uvtools := list }}
 {{- if .work }}
 {{-   $pacman = mustAppend $pacman "docker" }}
 {{-   $aur = mustAppend $aur "hadolint-bin" }}
-{{-   $pipx = concat $pipx (list "black" "djlint" "flake8" "isort") }}
+{{-   $uvtools = concat $uvtools (list "black" "djlint" "flake8" "isort") }}
 {{- end }}
 
 set -eu
 
 pacman_pkgs="{{ $pacman | sortAlpha | join " " }}"
 aur_pkgs="{{ $aur | sortAlpha | join " " }}"
-pipx_pkgs="{{ $pipx | sortAlpha | join " " }}"
+uv_tools="{{ $uvtools | sortAlpha | join " " }}"
 
 missing=""
 for p in $pacman_pkgs; do
@@ -60,15 +62,22 @@ if [ -n "$missing" ]; then
 fi
 
 missing=""
-for p in $pipx_pkgs; do
-    pipx list --short 2>/dev/null | cut -d' ' -f1 | grep -qx "$p" || missing="$missing $p"
+for p in $uv_tools; do
+    uv tool list 2>/dev/null | grep -v '^-' | cut -d' ' -f1 | grep -qx "$p" || missing="$missing $p"
 done
 if [ -n "$missing" ]; then
-    if command -v pipx >/dev/null 2>&1; then
-        printf 'install-packages: pipx ->%s\n' "$missing"
-        for p in $missing; do pipx install "$p"; done
-    else
-        printf 'install-packages: pipx ausente, faltando ->%s\n' "$missing" >&2
-    fi
+    printf 'install-packages: uv tool ->%s\n' "$missing"
+    for p in $missing; do uv tool install "$p"; done
+fi
+
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+if [ -z "$(ls -A "$NVM_DIR/versions/node" 2>/dev/null)" ]; then
+    printf 'install-packages: nvm -> node lts\n'
+    bash -c '. /usr/share/nvm/nvm.sh && nvm install --lts && nvm alias default "lts/*"'
+fi
+
+if [ -z "$(ls -A "${RUSTUP_HOME:-$HOME/.rustup}/toolchains" 2>/dev/null)" ]; then
+    printf 'install-packages: rustup -> stable\n'
+    rustup default stable
 fi
 {{- end }}

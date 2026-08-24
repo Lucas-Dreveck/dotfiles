@@ -1,4 +1,4 @@
-[[ -r "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
+[[ -d "$HOME/.cargo/bin" ]] && path=("$HOME/.cargo/bin" $path)
 
 export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 
