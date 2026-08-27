@@ -30,19 +30,35 @@ if [ ! -f "$age_key" ]; then
             fi
         done
 
-        if [ -n "$src" ]; then
-            printf 'install.sh: chave age encontrada em %s\n' "$src"
-            printf 'install.sh: Enter para usar, ou informe outro caminho: '
-        else
-            printf 'install.sh: caminho do key.txt.age no backup offline: '
-        fi
-        read -r answer || answer=""
-        if [ -n "$answer" ]; then
-            case "$answer" in
-                "~/"*) answer="${HOME}/${answer#\~/}" ;;
-            esac
-            src="$answer"
-        fi
+        found="$src"
+        attempt=0
+        while :; do
+            if [ -n "$found" ]; then
+                printf 'install.sh: chave age encontrada em %s\n' "$found"
+                printf 'install.sh: Enter para usar, ou informe outro caminho: '
+            else
+                printf 'install.sh: caminho do key.txt.age no backup offline: '
+            fi
+            read -r answer || answer=""
+            answer=$(printf '%s' "$answer" | tr -d '[:cntrl:]')
+            if [ -n "$answer" ]; then
+                case "$answer" in
+                    "~/"*) answer="${HOME}/${answer#\~/}" ;;
+                esac
+                src="$answer"
+            else
+                src="$found"
+            fi
+            if [ -n "$src" ] && [ -f "$src" ]; then
+                break
+            fi
+            echo "install.sh: nao encontrei: $src" >&2
+            attempt=$((attempt + 1))
+            if [ "$attempt" -ge 3 ]; then
+                echo "install.sh: desistindo apos 3 tentativas" >&2
+                exit 1
+            fi
+        done
     fi
 
     if [ -z "$src" ] || [ ! -f "$src" ]; then
