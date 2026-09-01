@@ -1,77 +1,59 @@
 # dotfiles
 
-Personal dotfiles managed with [chezmoi](https://chezmoi.io). Secrets are
-encrypted at rest with [age](https://age-encryption.org).
+Managed with [chezmoi](https://chezmoi.io). Secrets encrypted with [age](https://age-encryption.org).
 
 ## New machine
 
-Provide by hand, from the offline backup: the age key file `key.txt.age`, the
-GPG private key, and both passphrases.
+From the offline backup: `key.txt.age`, the GPG private key, both passphrases.
 
 ```sh
 sudo pacman -S chezmoi age gopass gnupg git
-gpg --import <offline-backup>
+
+gpg --import <backup>
 gpg --edit-key <key-id>          # trust -> 5 -> y -> quit
 
-git clone <this repo, over https> ~/Repositories/GitHub/dotfiles
-GOPASS_STORE_URL=<password store, ssh> ~/Repositories/GitHub/dotfiles/install.sh
+git clone <this repo, https> ~/Repositories/GitHub/dotfiles
+GOPASS_STORE_URL=<store, ssh> ~/Repositories/GitHub/dotfiles/install.sh
 ```
 
-HTTPS for the clone because the SSH key does not exist yet.
+HTTPS for the clone: the SSH key does not exist yet.
 
-The age key is not in this repository. `install.sh` looks for `key.txt.age` on
-mounted media, offers what it finds, and decrypts it to
-`~/.config/chezmoi/key.txt`. Point it elsewhere with `AGE_KEY_FILE=<path>`. The
-backup is read, never moved.
+`install.sh` looks for `key.txt.age` on mounted media and decrypts it to
+`~/.config/chezmoi/key.txt`. `AGE_KEY_FILE=<path>` overrides the search. The
+backup is read, never moved. Safe to re-run.
 
-`install.sh` is idempotent, so just re-run it if a phase fails. It asks for the
-machine category and both passphrases.
-
-`rustup` is not managed here; install it from upstream if needed.
-
-Unattended install:
+Unattended:
 
 ```sh
 chezmoi init --promptChoice 'Machine category=work'
 ```
 
+## Password store
+
+Separate private repo. `install.sh` clones it when `GOPASS_STORE_URL` is set.
+By hand:
+
+```sh
+git clone <store> ~/Repositories/GitHub/password-store
+gopass config mounts.path ~/Repositories/GitHub/password-store
+gopass ls
+```
+
+The GPG key has to be imported and trusted first.
+
 ## Machine category
 
-Asked once at `chezmoi init` and stored in the local config: `personal`, `work`,
-`both` or `none`. It decides which identity files that machine receives.
-`home/.chezmoiignore.tmpl` is where that is decided, deny by default.
+Asked once at `chezmoi init`: `personal`, `work`, `both`, `none`. Decides which
+identity files reach the machine. Rules in `home/.chezmoiignore.tmpl`, deny by
+default.
 
 ## Git identity
 
-No global `user.*`. Identity comes from a per-forge file under
-`~/Repositories/<forge>/`, wired by `includeIf gitdir:`. A repository outside
-those trees has no identity and git refuses to commit, which is the point.
+No global `user.*`. Per-forge file under `~/Repositories/<forge>/`, wired by
+`includeIf gitdir:`. Outside those trees git refuses to commit.
 
-## Daily use
+## Provisioning
 
-```sh
-chezmoi edit <path> --apply      # edit the source, then apply
-chezmoi add <path>               # manage a new file
-chezmoi add --encrypt <path>     # manage a new secret
-chezmoi update                   # pull and apply, on another machine
-chezmoi managed | ignored | status | diff
-```
-
-Never edit a deployed file directly, the next `apply` overwrites it.
-`chezmoi re-add <path>` recovers an accidental direct edit.
-
-Renaming: `chezmoi forget <old>`, move the target, then `chezmoi add` the new
-path. For an SSH key, also update the matching `IdentityFile` and verify with
-`ssh -T <host>`.
-
-Package list lives in the `run_onchange` install script under
-`home/.chezmoiscripts/`. Editing it changes the hash, so it re-runs.
-
-## Rules
-
-- The repository is public. Never commit a plaintext secret.
-- Audit before publishing: `git ls-files | grep -v '\.age$'`
-- Never open a `.age` file by hand. Use `chezmoi edit`.
-- `known_hosts`, shell history and completion caches stay unmanaged on purpose.
-- The age key lives only on offline media. Lose every copy and every `.age` file
-  here becomes permanently unreadable.
+`home/.chezmoiscripts/` holds a `run_onchange` script with the package list plus
+the Rust toolchain, node LTS and the `uv` tools. Editing it changes the hash, so
+it re-runs; satisfied steps are skipped.
