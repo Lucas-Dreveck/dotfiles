@@ -1,13 +1,13 @@
 pythonlint() {
   mkdir -p lint_logs;
-  echo "🔍 Rodando flake8...";
+  echo "🔍 Running flake8...";
   flake8 . \
     --exclude "**/migrations/0*.py,.venv" \
     --max-line-length 120 \
     --ignore=E203,W503 \
     > lint_logs/flake8.log 2>&1;
 
-  echo "📦 Rodando isort...";
+  echo "📦 Running isort...";
   isort . \
     --line-width 120 \
     --check-only \
@@ -17,7 +17,7 @@ pythonlint() {
     --skip .venv \
     > lint_logs/isort.log 2>&1;
 
-  echo "🎨 Rodando black...";
+  echo "🎨 Running black...";
   black . \
     --check \
     --diff \
@@ -26,26 +26,26 @@ pythonlint() {
     --exclude "^.*\\b(migrations|\\.venv)\\b.*\$" \
     > lint_logs/black.log 2>&1;
 
-  echo "🧠 Rodando djlint...";
+  echo "🧠 Running djlint...";
   for dir in $(find . -type d -name templates -not -path "./.venv/*"); do
     djlint "$dir" --profile=django --ignore "H006" >> lint_logs/djlint.log 2>&1;
   done
 
-  echo "🐳 Rodando hadolint...";
+  echo "🐳 Running hadolint...";
   find . -type f \( -iname "dockerfile" -o -iname "Dockerfile" \) -not -path "./.venv/*" \
     -exec hadolint {} \; > lint_logs/hadolint.log 2>&1;
 
-  echo "✅ Lint finalizado! Verifique os arquivos em lint_logs/"
+  echo "✅ Lint finished! Check the files in lint_logs/"
 }
 
 alias plint='pythonlint'
 
 alias pfix='
-echo "📦 Aplicando isort...";
+echo "📦 Applying isort...";
 isort . --line-width 120 --profile black --skip-glob "**/migrations/0*.py" --skip .venv;
 
-echo "🎨 Aplicando black...";
+echo "🎨 Applying black...";
 black . --line-length 120 --exclude "/(\.venv|migrations)/";
 
-echo "✅ Formatação aplicada com sucesso!"
+echo "✅ Formatting applied."
 '

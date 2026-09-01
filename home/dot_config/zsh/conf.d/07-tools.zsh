@@ -18,7 +18,7 @@ export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 
 _nvm_load() {
   unfunction nvm 2>/dev/null
-  [[ -t 2 ]] && print -u2 -n -P "%F{yellow}carregando nvm…%f"
+  [[ -t 2 ]] && print -u2 -n -P "%F{yellow}loading nvm…%f"
   [[ -r /usr/share/nvm/init-nvm.sh ]] && source /usr/share/nvm/init-nvm.sh
   [[ -t 2 ]] && print -u2 -n $'\r\e[K'
 }

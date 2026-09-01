@@ -5,7 +5,7 @@
 {{- end }}
 {{- if ne $osID "linux-arch" }}
 
-printf 'install-packages: %s sem lista de pacotes definida\n' '{{ $osID }}' >&2
+printf 'install-packages: no package list defined for %s\n' '{{ $osID }}' >&2
 {{- else }}
 {{- $pacman := list
       "age"
@@ -35,17 +35,31 @@ printf 'install-packages: %s sem lista de pacotes definida\n' '{{ $osID }}' >&2
 
 set -eu
 
+failed=""
+
 pacman_pkgs="{{ $pacman | sortAlpha | join " " }}"
 aur_pkgs="{{ $aur | sortAlpha | join " " }}"
 uv_tools="{{ $uvtools | sortAlpha | join " " }}"
 
-missing=""
-for p in $pacman_pkgs; do
-    pacman -Qq "$p" >/dev/null 2>&1 || missing="$missing $p"
-done
+missing=$(pacman -T $pacman_pkgs 2>/dev/null || true)
 if [ -n "$missing" ]; then
-    printf 'install-packages: pacman ->%s\n' "$missing"
-    sudo pacman -S --needed --noconfirm $missing
+    known=""
+    unknown=""
+    for p in $missing; do
+        if pacman -Si "$p" >/dev/null 2>&1; then
+            known="$known $p"
+        else
+            unknown="$unknown $p"
+        fi
+    done
+    if [ -n "$unknown" ]; then
+        printf 'install-packages: not in the repos ->%s\n' "$unknown" >&2
+        failed="$failed pacman-unknown"
+    fi
+    if [ -n "$known" ]; then
+        printf 'install-packages: pacman ->%s\n' "$known"
+        sudo pacman -S --needed --noconfirm $known || failed="$failed pacman"
+    fi
 fi
 
 missing=""
@@ -55,29 +69,55 @@ done
 if [ -n "$missing" ]; then
     if command -v yay >/dev/null 2>&1; then
         printf 'install-packages: yay ->%s\n' "$missing"
-        yay -S --needed --noconfirm $missing
+        yay -S --needed --noconfirm $missing || failed="$failed yay"
     else
-        printf 'install-packages: yay ausente, faltando ->%s\n' "$missing" >&2
+        printf 'install-packages: yay missing, still needed ->%s\n' "$missing" >&2
+        failed="$failed yay-missing"
     fi
 fi
 
-missing=""
-for p in $uv_tools; do
-    uv tool list 2>/dev/null | grep -v '^-' | cut -d' ' -f1 | grep -qx "$p" || missing="$missing $p"
-done
-if [ -n "$missing" ]; then
-    printf 'install-packages: uv tool ->%s\n' "$missing"
-    for p in $missing; do uv tool install "$p"; done
+if [ -n "$uv_tools" ]; then
+    if command -v uv >/dev/null 2>&1; then
+        missing=""
+        for p in $uv_tools; do
+            uv tool list 2>/dev/null | grep -v '^-' | cut -d' ' -f1 | grep -qx "$p" || missing="$missing $p"
+        done
+        if [ -n "$missing" ]; then
+            printf 'install-packages: uv tool ->%s\n' "$missing"
+            for p in $missing; do
+                uv tool install "$p" || failed="$failed uv:$p"
+            done
+        fi
+    else
+        printf 'install-packages: uv missing, still needed -> %s\n' "$uv_tools" >&2
+        failed="$failed uv-missing"
+    fi
 fi
 
 export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 if [ -z "$(ls -A "$NVM_DIR/versions/node" 2>/dev/null)" ]; then
-    printf 'install-packages: nvm -> node lts\n'
-    bash -c '. /usr/share/nvm/nvm.sh && nvm install --lts && nvm alias default "lts/*"'
+    if [ -r /usr/share/nvm/nvm.sh ]; then
+        printf 'install-packages: nvm -> node lts\n'
+        bash -c '. /usr/share/nvm/nvm.sh && nvm install --lts && nvm alias default "lts/*"' ||
+            failed="$failed nvm"
+    else
+        echo 'install-packages: nvm missing, node lts not installed' >&2
+        failed="$failed nvm-missing"
+    fi
 fi
 
 if [ -z "$(ls -A "${RUSTUP_HOME:-$HOME/.rustup}/toolchains" 2>/dev/null)" ]; then
-    printf 'install-packages: rustup -> stable\n'
-    rustup default stable
+    if command -v rustup >/dev/null 2>&1; then
+        printf 'install-packages: rustup -> stable\n'
+        rustup default stable || failed="$failed rustup"
+    else
+        echo 'install-packages: rustup missing, toolchain not installed' >&2
+        failed="$failed rustup-missing"
+    fi
+fi
+
+if [ -n "$failed" ]; then
+    printf 'install-packages: incomplete ->%s\n' "$failed" >&2
+    exit 1
 fi
 {{- end }}

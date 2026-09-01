@@ -4,14 +4,14 @@ if [[ -n "$_YANK_REC" ]]; then
   _yank_preexec() {
     local b64
     b64=$(print -rn -- "$1" | base64 | tr -d '\n')
-    print -rn -- $'\e_yankcmd:'"$b64"$'\e\\'   # parsing marker (APC, para o yank)
-    print -rn -- $'\e]133;C\e\\'               # OSC 133: começou a rodar um comando
+    print -rn -- $'\e_yankcmd:'"$b64"$'\e\\'   # parsing marker (APC, for yank)
+    print -rn -- $'\e]133;C\e\\'               # OSC 133: a command started running
   }
   _yank_precmd() {
     local ec=$?
     print -rn -- $'\e_yankend:'"$ec"$'\e\\'     # parsing marker (APC)
-    print -rn -- $'\e]133;D;'"$ec"$'\e\\'       # OSC 133: comando terminou (exit $ec)
-    print -rn -- $'\e]133;A\e\\'                # OSC 133: prompt começando (estou ocioso)
+    print -rn -- $'\e]133;D;'"$ec"$'\e\\'       # OSC 133: command finished (exit $ec)
+    print -rn -- $'\e]133;A\e\\'                # OSC 133: prompt starting (shell is idle)
     return $ec
   }
   add-zsh-hook preexec _yank_preexec
@@ -52,7 +52,7 @@ yank() {
       --lines)     head="${2%%:*}"; tail="${2##*:}"; shift 2;;
       -p|--no-copy) do_copy=0; shift;;
       -h|--help)   _yank_help; return 0;;
-      *) print -u2 -- "yank: opção desconhecida: $1 (veja: yank -h)"; return 2;;
+      *) print -u2 -- "yank: unknown option: $1 (see: yank -h)"; return 2;;
     esac
   done
 
@@ -131,11 +131,11 @@ yank() {
 
   if (( do_copy )) && [[ -n "$_YANK_CLIP" ]]; then
     if print -rn -- "$out" | ${=_YANK_CLIP} 2>/dev/null; then
-      print -r -- $'\e[2m✓ copiado para o clipboard\e[0m'
+      print -r -- $'\e[2m✓ copied to clipboard\e[0m'
     else
-      print -u2 -- "yank: falha ao copiar usando '${_YANK_CLIP}'."
+      print -u2 -- "yank: failed to copy using '${_YANK_CLIP}'."
     fi
   elif (( do_copy )); then
-    print -u2 -- "yank: nenhuma ferramenta de clipboard encontrada (instale wl-clipboard, xclip ou xsel)."
+    print -u2 -- "yank: no clipboard tool found (install wl-clipboard, xclip or xsel)."
   fi
 }
