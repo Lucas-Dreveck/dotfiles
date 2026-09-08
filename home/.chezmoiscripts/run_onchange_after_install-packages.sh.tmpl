@@ -7,30 +7,18 @@
 
 printf 'install-packages: no package list defined for %s\n' '{{ $osID }}' >&2
 {{- else }}
-{{- $pacman := list
-      "age"
-      "chezmoi"
-      "fastfetch"
-      "git"
-      "gnupg"
-      "gopass"
-      "kitty"
-      "nvm"
-      "perl"
-      "rustup"
-      "starship"
-      "ttf-jetbrains-mono-nerd"
-      "util-linux"
-      "uv"
-      "vim"
-      "wl-clipboard"
-      "zsh" }}
-{{- $aur := list }}
-{{- $uvtools := list }}
+{{- $pacman := .pacman.common }}
+{{- $aur := .aur.common }}
+{{- $uvtools := .uv.common }}
+{{- if .personal }}
+{{-   $pacman = concat $pacman .pacman.personal }}
+{{-   $aur = concat $aur .aur.personal }}
+{{-   $uvtools = concat $uvtools .uv.personal }}
+{{- end }}
 {{- if .work }}
-{{-   $pacman = mustAppend $pacman "docker" }}
-{{-   $aur = mustAppend $aur "hadolint-bin" }}
-{{-   $uvtools = concat $uvtools (list "black" "djlint" "flake8" "isort") }}
+{{-   $pacman = concat $pacman .pacman.work }}
+{{-   $aur = concat $aur .aur.work }}
+{{-   $uvtools = concat $uvtools .uv.work }}
 {{- end }}
 
 set -eu

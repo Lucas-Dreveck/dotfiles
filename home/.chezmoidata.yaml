@@ -1,0 +1,40 @@
+pacman:
+    common:
+        - age
+        - chezmoi
+        - fastfetch
+        - fd
+        - fzf
+        - git
+        - gnupg
+        - gopass
+        - kitty
+        - nvm
+        - perl
+        - ripgrep
+        - rustup
+        - starship
+        - ttf-jetbrains-mono-nerd
+        - util-linux
+        - uv
+        - vim
+        - wl-clipboard
+        - zsh
+    personal: []
+    work:
+        - docker
+
+aur:
+    common: []
+    personal: []
+    work:
+        - hadolint-bin
+
+uv:
+    common: []
+    personal: []
+    work:
+        - black
+        - djlint
+        - flake8
+        - isort
