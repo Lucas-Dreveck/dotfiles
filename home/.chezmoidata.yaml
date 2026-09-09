@@ -1,14 +1,18 @@
 pacman:
     common:
         - age
+        - bat
         - chezmoi
+        - eza
         - fastfetch
         - fd
         - fzf
         - git
         - gnupg
         - gopass
+        - jq
         - kitty
+        - lazygit
         - nvm
         - perl
         - ripgrep
@@ -19,6 +23,8 @@ pacman:
         - uv
         - vim
         - wl-clipboard
+        - yq
+        - zoxide
         - zsh
     personal: []
     work:
