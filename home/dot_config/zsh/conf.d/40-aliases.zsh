@@ -25,7 +25,7 @@ rff() {
   }
 
   rg -l "$query" | fzf \
-    --preview "rg -n --color=always '$query' {}"
+    --preview "rg -n --passthru --color=always --colors 'match:none' --colors 'match:bg:220' --colors 'match:fg:0' --colors 'match:style:bold' '$query' {}"
 }
 
 # Git
