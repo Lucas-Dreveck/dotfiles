@@ -37,6 +37,15 @@ aur:
     work:
         - hadolint-bin
 
+npm:
+    common:
+        - "@anthropic-ai/claude-code"
+        - "@caveman-ai/cli"
+        - neovim
+    personal: []
+    work:
+        - "@playwright/cli"
+        - h5p-cli
 uv:
     common: []
     personal: []

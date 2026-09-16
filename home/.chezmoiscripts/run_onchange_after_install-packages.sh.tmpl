@@ -10,15 +10,18 @@ printf 'install-packages: no package list defined for %s\n' '{{ $osID }}' >&2
 {{- $pacman := .pacman.common }}
 {{- $aur := .aur.common }}
 {{- $uvtools := .uv.common }}
+{{- $npmpkgs := .npm.common }}
 {{- if .personal }}
 {{-   $pacman = concat $pacman .pacman.personal }}
 {{-   $aur = concat $aur .aur.personal }}
 {{-   $uvtools = concat $uvtools .uv.personal }}
+{{-   $npmpkgs = concat $npmpkgs .npm.personal }}
 {{- end }}
 {{- if .work }}
 {{-   $pacman = concat $pacman .pacman.work }}
 {{-   $aur = concat $aur .aur.work }}
 {{-   $uvtools = concat $uvtools .uv.work }}
+{{-   $npmpkgs = concat $npmpkgs .npm.work }}
 {{- end }}
 
 set -eu
@@ -28,6 +31,7 @@ failed=""
 pacman_pkgs="{{ $pacman | sortAlpha | join " " }}"
 aur_pkgs="{{ $aur | sortAlpha | join " " }}"
 uv_tools="{{ $uvtools | sortAlpha | join " " }}"
+npm_pkgs="{{ $npmpkgs | sortAlpha | join " " }}"
 
 missing=$(pacman -T $pacman_pkgs 2>/dev/null || true)
 if [ -n "$missing" ]; then
@@ -91,6 +95,24 @@ if [ -z "$(ls -A "$NVM_DIR/versions/node" 2>/dev/null)" ]; then
     else
         echo 'install-packages: nvm missing, node lts not installed' >&2
         failed="$failed nvm-missing"
+    fi
+fi
+
+if [ -n "$npm_pkgs" ]; then
+    if [ -r /usr/share/nvm/nvm.sh ]; then
+        installed=$(bash -c '. /usr/share/nvm/nvm.sh >/dev/null 2>&1 && nvm use default >/dev/null 2>&1 && npm ls -g --depth=0 --parseable' 2>/dev/null || true)
+        missing=""
+        for p in $npm_pkgs; do
+            printf '%s\n' "$installed" | grep -qx ".*/node_modules/$p" || missing="$missing $p"
+        done
+        if [ -n "$missing" ]; then
+            printf 'install-packages: npm ->%s\n' "$missing"
+            bash -c ". /usr/share/nvm/nvm.sh && nvm use default >/dev/null && npm install -g$missing" ||
+                failed="$failed npm"
+        fi
+    else
+        printf 'install-packages: nvm missing, npm globals not installed ->%s\n' "$npm_pkgs" >&2
+        failed="$failed npm-missing"
     fi
 fi
 
