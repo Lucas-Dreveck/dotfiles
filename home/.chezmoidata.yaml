@@ -13,6 +13,7 @@ pacman:
         - jq
         - kitty
         - lazygit
+        - neovim
         - nvm
         - perl
         - ripgrep
