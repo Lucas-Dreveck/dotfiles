@@ -42,10 +42,10 @@ alias plint='pythonlint'
 
 alias pfix='
 echo "📦 Applying isort...";
-isort . --line-width 120 --profile black --skip-glob "**/migrations/0*.py" --skip .venv;
+isort . --line-width 120 --profile black --skip-glob "**/migrations/0*.py" --skip .venv --skip .lsp;
 
 echo "🎨 Applying black...";
-black . --line-length 120 --exclude "/(\.venv|migrations)/";
+black . --line-length 120 --exclude "/(\.venv|\.lsp|migrations)/";
 
 echo "✅ Formatting applied."
 '
