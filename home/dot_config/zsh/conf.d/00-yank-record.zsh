@@ -14,7 +14,19 @@ if [[ -n "$_YANK_REC" && -z "$_YANK_TTY" ]]; then
   export _YANK_TTY=$TTY
 elif _yank_should_record; then
   mkdir -p "$YANK_DIR"
-  find "$YANK_DIR" -maxdepth 1 -type f -name 'sess-*.log' -mtime +1 -delete 2>/dev/null
+  () {
+    local f pid
+    local -a dead
+    if [[ -d /proc/self ]]; then
+      for f in "$YANK_DIR"/sess-*.log(N); do
+        pid=${${f:t}#sess-}; pid=${pid%%-*}
+        [[ -r /proc/$pid/cmdline && "$(</proc/$pid/cmdline)" == *${f:t}* ]] || dead+=("$f")
+      done
+    else
+      dead=("$YANK_DIR"/sess-*.log(N.mh+12))
+    fi
+    (( $#dead )) && rm -f -- "${dead[@]}"
+  }
   if [[ $SHLVL -eq 1 && -z "$TMUX" && -z "$ZELLIJ" && -z "$_YANK_REC" ]]; then
     export _YANK_FASTFETCH=1
   fi
