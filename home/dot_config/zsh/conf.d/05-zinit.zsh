@@ -8,6 +8,13 @@ if [[ ! -f "$ZINIT_HOME/zinit.zsh" ]]; then
     || print -P "%F{160} The clone has failed.%f%b"
 fi
 
+() {
+  local f
+  for f in "$ZINIT_HOME"/zinit*.zsh(N); do
+    [[ $f.zwc -nt $f ]] || zcompile "$f"
+  done
+}
+
 source "$ZINIT_HOME/zinit.zsh"
 autoload -Uz _zinit
 (( ${+_comps} )) && _comps[zinit]=_zinit
